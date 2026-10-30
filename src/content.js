@@ -161,13 +161,13 @@ function handlePageResize() {
         }
         arrangePosts();
     } else {
-        document.documentElement.style.setProperty('--rmc-post-width', postsContainer.clientWidth / numOfColumns + 'px');
+        document.documentElement.style.setProperty('--rmc-post-width', postsContainer.offsetWidth / numOfColumns + 'px');
     }
 }
 
 function columns() {
     numOfColumns = calcNumOfColumns() || 1;
-    document.documentElement.style.setProperty('--rmc-post-width', postsContainer.clientWidth / numOfColumns + 'px');
+    document.documentElement.style.setProperty('--rmc-post-width', postsContainer.offsetWidth / numOfColumns + 'px');
     width = 100 / numOfColumns;
     heights = [];
     heightsBatch = [];

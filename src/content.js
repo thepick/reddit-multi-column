@@ -7,6 +7,7 @@ let numOfColumns, width, postsContainer;
 let maxNumOfColumns = settings.maxNumOfColumns;
 let minColumnWidth = settings.minColumnWidth;
 let heights = [];
+let heightsBatch = [];
 let framePending = false;
 let lastFeedWidth = 0;
 const cardSizes = new WeakMap();
@@ -92,13 +93,22 @@ function handlePageNav() {
             postsContainer.posts = [];
         }
 
-        for (const post of postsContainer.posts) if (post.isConnected) cardObserver.observe(post);
+        for (const post of postsContainer.posts) {
+            delete post.column;
+            if (post.isConnected) cardObserver.observe(post);
+        }
     } else div.remove();
 }
 
 function addPostsToArray() {
     if (!postsContainer?.isConnected) return;
-    const newPosts = postsContainer.querySelectorAll(':is(article, in-feed-wiki-page-carousel, in-feed-community-recommendations)');
+    const isHidden = post => post.style.display === 'none' || post.style.visibility === 'hidden';
+    const newPosts = Array.from(postsContainer.querySelectorAll(':is(article, in-feed-wiki-page-carousel, in-feed-community-recommendations)')).filter(post => !isHidden(post));
+    postsContainer.posts = postsContainer.posts.filter(function (post) {
+        if (!isHidden(post)) return true;
+        cardObserver.unobserve(post);
+        return false;
+    });
 
     // All the old posts were removed
     // Retain off-screen slots only while Reddit still exposes virtualization placeholders.
@@ -134,43 +144,47 @@ function addPostsToArray() {
 
 function arrangePosts() {
     if (!postsContainer?.isConnected || !numOfColumns) return;
-    heights.fill(0);
-    const batches = new Map();
     let post, shortestCol;
     for (let i = 0; i < postsContainer.posts.length; i++) {
         post = postsContainer.posts[i];
-        shortestCol = post.column < numOfColumns ? post.column : getShortestCol(heights);
+        shortestCol = post.column ?? getShortestCol(heights);
 
         if (post.isConnected) {
-            Object.assign(post.style, {
-                position: 'absolute', width: 'var(--rmc-post-width)',
-                left: `${width * shortestCol}%`, top: `${heights[shortestCol]}px`, boxSizing: 'border-box'
-            });
+            post.style = `
+                position: absolute;
+                width: var(--rmc-post-width);
+                left: ${width * shortestCol}%;
+                top: ${heights[shortestCol]}px;
+                box-sizing: border-box;
+                `;
             heights[shortestCol] += post.offsetHeight;
             post.height = post.offsetHeight;
             post.column = shortestCol;
-            if (post.parentElement !== postsContainer) {
-                if (!batches.has(post.parentElement)) batches.set(post.parentElement, Array(numOfColumns).fill(0));
-                batches.get(post.parentElement)[shortestCol] += post.offsetHeight;
+            if (!post.parentElement.posts) {
+                heightsBatch[getShortestCol(heightsBatch)] += post.offsetHeight;
+                if (!post.nextElementSibling?.nextElementSibling) {
+                    postsContainer.classList.add('rmc-has-batch');
+                    post.parentElement.style.minHeight = Math.max(...heightsBatch) + 'px';
+                    for (let i = 0; i < heightsBatch.length; i++) {
+                        heightsBatch[i] = 0;
+                    }
+                }
             }
         } else {
-            cardObserver.unobserve(post);
-            heights[shortestCol] += post.height || 0;
+            heights[shortestCol] += post.height;
         }
-    }
-    for (const [batch, sizes] of batches) batch.style.minHeight = Math.max(...sizes) + 'px';
-    if (postsContainer.classList.contains('rmc-has-batch') !== Boolean(batches.size)) {
-        postsContainer.classList.toggle('rmc-has-batch', Boolean(batches.size));
     }
 
     const loadMorePostsEl = getLoadMorePostsEl();
 
     if (loadMorePostsEl) {
         shortestCol = getShortestCol(heights);
-        Object.assign(loadMorePostsEl.style, {
-            position: 'absolute', width: 'var(--rmc-post-width)',
-            left: `${width * shortestCol}%`, top: `${heights[shortestCol]}px`
-        });
+        loadMorePostsEl.style = `
+            position: absolute;
+            width: var(--rmc-post-width);
+            left: ${width * shortestCol}%;
+            top: ${heights[shortestCol]}px;
+            `;
         postsContainer.style.height = Math.max(...heights) + loadMorePostsEl.offsetHeight + 'px';
     } else {
         postsContainer.style.height = Math.max(...heights) + 'px';
@@ -232,8 +246,10 @@ function columns() {
     document.documentElement.style.setProperty('--rmc-post-width', postsContainer.offsetWidth / numOfColumns + 'px');
     width = 100 / numOfColumns;
     heights = [];
+    heightsBatch = [];
     for (let i = 0; i < numOfColumns; i++) {
         heights.push(0);
+        heightsBatch.push(0);
     }
 }
 

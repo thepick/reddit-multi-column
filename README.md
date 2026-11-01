@@ -4,13 +4,19 @@ Independent fork of [Pedro's Reddit Multi-Column](https://github.com/pedrosouu/r
 
 Displays Reddit posts in configurable masonry columns. Retains maximum columns, minimum/maximum column widths, non-feed content width and both right-sidebar modes.
 
+## Changes in 2026.11.1.1
+
+Restores the original extension's masonry arrangement, card-style reset, height measurement and batch spacing. The navigation recovery, visibility observation and settings repairs remain. No artificial card gaps or content clipping are added.
+
+The earlier fork retained inline card styles that upstream replaces. A browser regression with a stale fixed height and transform reproduces overlapping content with that approach and passes with the upstream method. The original layout engine intentionally replaces card inline styles before measuring them.
+
 ## Changes in 2026.11.1
 
 - Reconnects the feed after Back/Forward, cached-page restoration and Reddit DOM/route replacement.
 - Restores feed mode even when Reddit reuses the existing feed node.
 - Observes actual feed and card sizes, including image/video height changes.
 - Batches layout into animation frames without replacing Reddit's event methods.
-- Handles empty feeds, nested cards, narrow windows, removed settings and styled/filtered posts.
+- Handles empty feeds, nested cards, narrow windows and removed settings.
 - Retains off-screen post positions while virtualization placeholders exist, and reconnects recreated cards by Reddit post ID. Releases removed post references when placeholders disappear.
 - Reads validated settings directly in isolated extension scripts; removes the page-event storage bridge.
 - Labels numeric inputs/buttons and stops held buttons on pointer release, cancellation or window blur.

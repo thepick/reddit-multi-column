@@ -114,9 +114,15 @@ test('handles a narrow viewport with one valid column', async () => {
     assert.equal(f.root.style.getPropertyValue('--rmc-post-width'), '200px');
 });
 
-test('processes cards that already have inline styles without removing those styles', async () => {
+test('normalizes card inline styles using the original extension method', async () => {
     const f = fixture(); const p = f.addPost(); p.style.color = 'red'; await f.ready();
-    assert.equal(p.style.position, 'absolute'); assert.equal(p.style.color, 'red');
+    assert.equal(p.style.position, 'absolute'); assert.equal(p.style.color, undefined);
+});
+
+test('clears stale card transforms and fixed heights before measuring', async () => {
+    const f = fixture(); const p = f.addPost(200); p.style.height = '80px'; p.style.transform = 'translateY(-12px)'; await f.ready();
+    assert.equal(p.style.height, undefined);
+    assert.equal(p.style.transform, undefined);
 });
 
 test('repositions following cards when media changes height', async () => {
@@ -185,6 +191,8 @@ test('virtualized removals retain prior height and observe restored cards again'
 test('a nested batch reserves the full height of all its cards', async () => {
     const f = fixture({ maxNumOfColumns: 1 }); const a = f.addPost(100); const b = f.addPost(200);
     const batch = { style: {} }; a.parentElement = batch; b.parentElement = batch;
+    a.nextElementSibling = { nextElementSibling: b };
+    b.nextElementSibling = { nextElementSibling: null };
     await f.ready();
     assert.equal(batch.style.minHeight, '300px');
 });
@@ -223,4 +231,20 @@ test('recreated virtualized cards with stable IDs reclaim the original slot', as
     assert.equal(restored.style.top, '0px');
     assert.equal(b.style.top, '200px');
     assert.equal(f.feed.posts.length, 2);
+});
+
+test('returning to a cached feed clears columns from an older layout', async () => {
+    const f = fixture({ maxNumOfColumns: 3 }); const cards = [f.addPost(), f.addPost(), f.addPost()]; await f.ready();
+    const other = { ...f.feed, children: [], posts: undefined };
+    f.setFeed(other); f.mutate(); f.change({ maxNumOfColumns: { newValue: 1 } });
+    f.setFeed(f.feed); f.mutate();
+    assert.deepEqual(cards.map(post => post.style.left), ['0%', '0%', '0%']);
+    assert.ok(cards.every(post => !post.style.top.includes('undefined')));
+});
+
+test('explicitly hidden cards stay hidden when upstream styling is applied', async () => {
+    const f = fixture({ maxNumOfColumns: 1 }); const hidden = f.addPost(200); const visible = f.addPost(100);
+    hidden.style.display = 'none'; await f.ready();
+    assert.equal(hidden.style.display, 'none');
+    assert.equal(visible.style.top, '0px');
 });

@@ -12,12 +12,12 @@ article { padding: 20px; border: 3px solid #111; background: #285063; }
 </style>
 <shreddit-app routename="home">
 <main class="subgrid-container"><shreddit-feed>
-<article style="height:180px;color:lime">Card 1</article>
-<article style="height:240px">Card 2</article>
-<article style="height:120px">Card 3</article>
-<article style="height:200px">Card 4</article>
-<article style="height:150px">Card 5</article>
-<article style="height:210px">Card 6</article>
+<article style="height:80px;transform:translateY(-12px)"><div style="height:180px">Card 1</div></article>
+<article><div style="height:240px">Card 2</div></article>
+<article><div style="height:120px">Card 3</div></article>
+<article><div style="height:200px">Card 4</div></article>
+<article><div style="height:150px">Card 5</div></article>
+<article><div style="height:210px">Card 6</div></article>
 </shreddit-feed></main></shreddit-app>
 <pre id="results">Running browser checks...</pre>
 <script>
@@ -39,12 +39,14 @@ window.addEventListener('error', e => failures.push(e.message));
     check('initial width expands beyond native width', feed.offsetWidth > 1000);
     check('native event methods preserved', document.addEventListener === nativeAddEventListener);
     const cards = feed.querySelectorAll('article');
-    check('unrelated inline color retained', cards[0].style.color === 'lime');
+    check('original styling clears stale height and transform', cards[0].style.height === '' && cards[0].style.transform === '');
+    const nextCard = [...cards].slice(1).find(card => card.style.left === cards[0].style.left);
+    check('following cards clear actual content without artificial gaps', nextCard.getBoundingClientRect().top >= cards[0].firstElementChild.getBoundingClientRect().bottom);
     document.documentElement.classList.remove('rmc-feed-page');
     window.dispatchEvent(new PopStateEvent('popstate'));
     await settle();
     check('Back restores full feed width with reused node', feed.offsetWidth > 1000);
-    cards[0].style.height = '400px';
+    cards[0].firstElementChild.style.height = '400px';
     await settle();
     const col = Number(cards[0].style.left.replace('%', ''));
     const next = [...cards].slice(1).find(card => Number(card.style.left.replace('%', '')) === col);
@@ -56,7 +58,7 @@ window.addEventListener('error', e => failures.push(e.message));
     feed.replaceWith(replacement); feed = replacement;
     await settle();
     check('empty replacement feed is supported', feed.style.height === '0px');
-    const post = document.createElement('article'); post.style.height = '150px';
+    const post = document.createElement('article'); post.innerHTML = '<div style="height:150px">Nested card</div>';
     const batch = document.createElement('div'); batch.append(post); feed.append(batch);
     await settle();
     check('nested cards in replacement feeds are arranged', post.style.position === 'absolute');
@@ -66,7 +68,7 @@ window.addEventListener('error', e => failures.push(e.message));
     const cached = feed;
     cached.style.display = 'none';
     feed = document.createElement('shreddit-feed');
-    const activePost = document.createElement('article'); activePost.style.height = '100px'; feed.append(activePost);
+    const activePost = document.createElement('article'); activePost.innerHTML = '<div style="height:100px">Active card</div>'; feed.append(activePost);
     cached.after(feed);
     await settle();
     check('visible feed wins over an earlier hidden cached feed', activePost.style.position === 'absolute');

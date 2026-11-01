@@ -3,7 +3,7 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
-const { pathToFileURL } = require('node:url');
+const { startFixtureServer } = require('./browser-server.cjs');
 const assert = require('node:assert/strict');
 
 (async () => {
@@ -15,6 +15,7 @@ const assert = require('node:assert/strict');
         '--remote-debugging-address=127.0.0.1', `--user-data-dir=${profile}`], { windowsHide: true, stdio: 'ignore' });
     let socket;
     let send;
+    let fixtureServer;
     try {
         let port;
         for (let i = 0; i < 100; i++) {
@@ -36,7 +37,8 @@ const assert = require('node:assert/strict');
             pending.set(requestId, response => { clearTimeout(timer); response.error ? reject(new Error(JSON.stringify(response.error))) : resolve(response.result); });
             socket.send(JSON.stringify({ id: requestId, method, params }));
         });
-        await send('Page.navigate', { url: pathToFileURL(path.join(__dirname, 'browser.html')).href });
+        fixtureServer = await startFixtureServer();
+        await send('Page.navigate', { url: fixtureServer.url });
         let status;
         for (let i = 0; i < 100; i++) {
             const result = await send('Runtime.evaluate', { expression: 'document.documentElement.dataset.testResult' });
@@ -48,6 +50,7 @@ const assert = require('node:assert/strict');
         console.log(result.result.value);
         assert.equal(status, 'PASS', 'real-browser fixture must pass');
     } finally {
+        fixtureServer?.close();
         if (send && socket?.readyState === WebSocket.OPEN) {
             try { await send('Browser.close'); } catch { /* Browser may close before replying. */ }
         }

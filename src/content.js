@@ -4,6 +4,8 @@ const div = document.createElement('div');
 div.style = 'width: calc(100vw - var(--rmc-left-sidebar, 0px) - var(--rmc-gap, 0px) - var(--rmc-right-sidebar, 0px) - var(--rmc-right-sidebar-gap, 0px))';
 
 let numOfColumns, width, postsContainer;
+let outgoingFeed = null;
+let layoutContainer = null;
 let maxNumOfColumns = settings.maxNumOfColumns;
 let minColumnWidth = settings.minColumnWidth;
 let heights = [];
@@ -74,7 +76,19 @@ function handlePageNav() {
             visibilityObserver.observe(candidate);
         }
     }
-    const feed = isPost || isShare ? null : candidates.find(candidate => candidate.offsetWidth > 0) || null;
+    const visibleFeed = candidates.find(candidate => candidate.offsetWidth > 0) || null;
+    const feed = isPost || isShare ? null : visibleFeed;
+    if (!isPost && !isShare) outgoingFeed = null;
+    else if (postsContainer) outgoingFeed = postsContainer;
+    if (outgoingFeed && (!currentCandidates.has(outgoingFeed) || !outgoingFeed.isConnected || !outgoingFeed.offsetWidth)) outgoingFeed = null;
+    const layoutFeed = isPost || isShare ? outgoingFeed : visibleFeed;
+    // Keep width on the outgoing feed's container, not a concurrently opening post.
+    const container = layoutFeed?.closest('.subgrid-container') || null;
+    if (container !== layoutContainer) {
+        layoutContainer?.classList.remove('rmc-feed-container');
+        layoutContainer = container;
+    }
+    if (container && !container.classList.contains('rmc-feed-container')) container.classList.add('rmc-feed-container');
     if (document.documentElement.classList.contains('rmc-feed-page') !== Boolean(feed)) {
         document.documentElement.classList.toggle('rmc-feed-page', Boolean(feed));
     }

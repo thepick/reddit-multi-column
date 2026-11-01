@@ -4,6 +4,10 @@ Independent fork of [Pedro's Reddit Multi-Column](https://github.com/pedrosouu/r
 
 Displays Reddit posts in configurable masonry columns. Retains maximum columns, minimum/maximum column widths, non-feed content width and both right-sidebar modes.
 
+## Changes in 2026.11.1.2
+
+Keeps the outgoing feed's own container at feed width while Reddit changes the URL and then replaces its DOM. New post-detail containers keep their normal width, including when the outgoing feed remains visible briefly. Feed-only sidebar hiding stays scoped to the outgoing feed. This removes the URL-first transition that could momentarily crunch the columns. Upstream masonry is unchanged.
+
 ## Changes in 2026.11.1.1
 
 Restores the original extension's masonry arrangement, card-style reset, height measurement and batch spacing. The navigation recovery, visibility observation and settings repairs remain. No artificial card gaps or content clipping are added.
@@ -44,7 +48,7 @@ node --test tests/*.test.cjs
 node tests/browser-check.cjs
 ```
 
-The browser check uses installed Microsoft Edge by default (Windows). Set `RMC_BROWSER` to another Chromium executable if needed. It creates a fresh temporary profile, checks an offline fixture through a loopback debugging connection and closes only its own browser process. It never opens your personal profile. An operating-system lock may leave its empty test profile in the temporary directory.
+The browser check uses installed Microsoft Edge by default (Windows). Set `RMC_BROWSER` to another Chromium executable if needed. It creates a fresh temporary profile and serves only the public fixture and its source assets through an allowlisted loopback server, so real history navigation can be tested without Internet access. It closes its server and its own browser process. It never opens your personal profile. An operating-system lock may leave its empty test profile in the temporary directory.
 
 The fixture checks width recovery, card resizing, same-column-count feed resizing, empty/replaced feeds, nested insertion and page restoration. Unit tests additionally cover settings, post-route exclusion, virtualization and options-button cancellation.
 

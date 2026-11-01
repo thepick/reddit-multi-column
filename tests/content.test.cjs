@@ -27,6 +27,7 @@ function fixture(settings = {}) {
             remove() { this.isConnected = false; },
             querySelectorAll() { return this.children.filter(n => n.tagName === 'ARTICLE'); },
             querySelector() { return null; },
+            closest(selector) { return selector === '.subgrid-container' ? this.parentElement : null; },
             matches(selector) { return selector.includes('article') && this.tagName === 'ARTICLE'; },
         };
         let inlineStyle = node.style;
@@ -97,10 +98,25 @@ test('Back restores feed class even when the feed node is reused', async () => {
     assert.equal(f.root.classList.contains('rmc-feed-page'), true);
 });
 
-test('post route removes feed mode even if a cached feed stays connected', async () => {
+test('outgoing feed retains its width mode until Reddit replaces its DOM', async () => {
     const f = fixture(); f.addPost(); await f.ready();
     f.location.pathname = '/r/test/comments/id/title/'; f.mutate();
+    assert.equal(f.feed.parentElement.classList.contains('rmc-feed-container'), true);
     assert.equal(f.root.classList.contains('rmc-feed-page'), false);
+    f.setFeed(null); f.mutate();
+    assert.equal(f.feed.parentElement.classList.contains('rmc-feed-container'), false);
+    assert.equal(f.root.classList.contains('rmc-feed-page'), false);
+});
+
+test('a feed first encountered on a post page does not activate feed width', async () => {
+    const f = fixture(); f.location.pathname = '/r/test/comments/id/title/'; f.addPost(); await f.ready();
+    assert.equal(f.root.classList.contains('rmc-feed-page'), false);
+});
+
+test('a reused container recovers its feed marker after Reddit resets its classes', async () => {
+    const f = fixture(); f.addPost(); await f.ready();
+    f.feed.parentElement.classList.remove('rmc-feed-container'); f.mutate();
+    assert.equal(f.feed.parentElement.classList.contains('rmc-feed-container'), true);
 });
 
 test('an empty feed initializes without a last-child exception', async () => {

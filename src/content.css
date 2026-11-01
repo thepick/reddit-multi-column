@@ -27,19 +27,26 @@
     grid-template-columns: var(--rmc-minmax, minmax(0, 1fr)) !important;
 }
 
-:root.rmc-feed-page .subgrid-container {
+:root .subgrid-container.rmc-feed-container {
     width: calc(100vw - var(--flex-nav-width, 0px)) !important;
     max-width: calc((var(--rmc-columns)*var(--rmc-max-column-width)) + var(--rmc-right-sidebar, 0px) + var(--rmc-right-sidebar-gap, 0px) + var(--rmc-gap, 0px)) !important;
     transition: initial !important;
 }
 
-:root:not(.rmc-feed-page) .subgrid-container {
+:root .subgrid-container:not(.rmc-feed-container) {
     width: calc(100vw - var(--flex-nav-width, 0px)) !important;
     max-width: calc((1*var(--rmc-max-cont-width)) + var(--rmc-right-sidebar, 0px) + var(--rmc-right-sidebar-gap, 0px) + var(--rmc-gap, 0px)) !important;
     transition: initial !important;
 }
 
-:root:is(.rmc-auto-hide-r-sidebar, .rmc-feed-page.rmc-auto-hide-r-sidebar-feed-pages) #right-sidebar-container {
+:root.rmc-auto-hide-r-sidebar-feed-pages .rmc-feed-container {
+    --rmc-right-sidebar: 0px;
+    --rmc-right-sidebar-gap: 0px;
+    --rmc-minmax: minmax(0, 1fr);
+}
+
+:root:is(.rmc-auto-hide-r-sidebar, .rmc-feed-page.rmc-auto-hide-r-sidebar-feed-pages) #right-sidebar-container,
+:root.rmc-auto-hide-r-sidebar-feed-pages .rmc-feed-container #right-sidebar-container {
     position: fixed;
     height: 100vh;
     top: 0;
@@ -54,11 +61,13 @@
     scrollbar-width: thin;
 }
 
-:root:is(.rmc-auto-hide-r-sidebar, .rmc-feed-page.rmc-auto-hide-r-sidebar-feed-pages) #right-sidebar-container:hover {
+:root:is(.rmc-auto-hide-r-sidebar, .rmc-feed-page.rmc-auto-hide-r-sidebar-feed-pages) #right-sidebar-container:hover,
+:root.rmc-auto-hide-r-sidebar-feed-pages .rmc-feed-container #right-sidebar-container:hover {
     transform: translateX(0);
 }
 
 :root:is(.rmc-auto-hide-r-sidebar, .rmc-feed-page.rmc-auto-hide-r-sidebar-feed-pages) #right-sidebar-container .legal-links,
+:root.rmc-auto-hide-r-sidebar-feed-pages .rmc-feed-container #right-sidebar-container .legal-links,
 shreddit-ad-post,
 shreddit-feed.nd\:visible:not(:defined) [slot='loader'] {
     display: none !important;

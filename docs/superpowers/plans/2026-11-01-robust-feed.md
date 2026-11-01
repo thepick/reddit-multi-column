@@ -33,4 +33,6 @@ Preserve MIT attribution, existing options and browser permissions. No external 
 - [x] Retain and label existing options; stop held buttons safely.
 - [x] Update README, add manual browser fixture and package/source-review notes.
 - [x] Run all checks and independent review; verify material findings and correct them.
-- [ ] Commit and push the completed fork; produce and inspect an unsigned development ZIP.
+- [x] Commit and push the completed fork; produce and inspect an unsigned development ZIP.
+
+Delivery: [pull request 1](https://github.com/thepick/reddit-multi-column/pull/1) holds the completed changes on `fix/robust-feed-layout`. The original fork base remains on `main` until integration is chosen. No personal-browser installation or signing was performed.

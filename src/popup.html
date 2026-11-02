@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Options menu</title>
+    <title>Reddit Multi-Column Robust options</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="popup.css">
@@ -10,31 +10,31 @@
     <section>
       <h4>Content area (Feed pages)</h4>
       <label>
-        <span>Max. number of columns</span>
-        <input type="number" value="5" id="maxNumOfColumns">
-        <button class="numInputBtn minus iconButton"></button>
-        <button class="numInputBtn plus iconButton"></button>
+        <span id="columns-label">Max. number of columns</span>
+        <input type="number" value="5" min="1" max="20" id="maxNumOfColumns" aria-labelledby="columns-label">
+        <button type="button" class="numInputBtn minus iconButton" aria-label="Decrease maximum columns"></button>
+        <button type="button" class="numInputBtn plus iconButton" aria-label="Increase maximum columns"></button>
       </label>
       <label>
-        <span>Min. column width (px)</span>
-        <input type="number" value="450" id="minColumnWidth">
-        <button class="numInputBtn minus"></button>
-        <button class="numInputBtn plus"></button>
+        <span id="min-width-label">Min. column width (px)</span>
+        <input type="number" value="450" min="100" max="10000" id="minColumnWidth" aria-labelledby="min-width-label">
+        <button type="button" class="numInputBtn minus" aria-label="Decrease minimum column width"></button>
+        <button type="button" class="numInputBtn plus" aria-label="Increase minimum column width"></button>
       </label>
       <label>
-        <span>Max. column width (px)</span>
-        <input type="number" value="732" id="maxColumnWidth">
-        <button class="numInputBtn minus"></button>
-        <button class="numInputBtn plus"></button>
+        <span id="max-width-label">Max. column width (px)</span>
+        <input type="number" value="732" min="100" max="10000" id="maxColumnWidth" aria-labelledby="max-width-label">
+        <button type="button" class="numInputBtn minus" aria-label="Decrease maximum column width"></button>
+        <button type="button" class="numInputBtn plus" aria-label="Increase maximum column width"></button>
       </label>
     </section>
     <section>
       <h4>Content area (Other pages)</h4>
       <label>
-        <span>Max. content area width (px)</span>
-        <input type="number" value="732" id="maxContWidth">
-        <button class="numInputBtn minus"></button>
-        <button class="numInputBtn plus"></button>
+        <span id="content-width-label">Max. content area width (px)</span>
+        <input type="number" value="732" min="100" max="10000" id="maxContWidth" aria-labelledby="content-width-label">
+        <button type="button" class="numInputBtn minus" aria-label="Decrease content width"></button>
+        <button type="button" class="numInputBtn plus" aria-label="Increase content width"></button>
       </label>
     </section>
     <section>
@@ -48,6 +48,8 @@
         <input type="checkbox" id="autoHideRSidebarFeedPages">
       </label>
     </section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <script src="settings.js"></script>
+    <script src="popup.js"></script>
   </body>
-  <script src="popup.js"></script>
 </html>
